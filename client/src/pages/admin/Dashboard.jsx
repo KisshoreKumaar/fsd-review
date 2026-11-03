@@ -30,7 +30,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Admission dashboard</h1>
+        <h1 className="page-title">Admission dashboard</h1>
         <p className="text-sm text-slate-500">
           Cycle {data.cycle} · signed in as {user?.name}
         </p>
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
           label="Fees collected"
           value={formatRupees(data.payments.collectedPaise)}
           tone="success"
-          hint={`${data.payments.count} payments`}
+          hint={`${data.payments.count} payments · ${data.payments.awaitingVerification || 0} to verify`}
         />
       </div>
 

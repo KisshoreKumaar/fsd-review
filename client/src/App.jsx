@@ -9,6 +9,7 @@ import { ROLES } from './constants/roles.js';
 import HomePage from './pages/HomePage.jsx';
 import PublicMerit from './pages/PublicMerit.jsx';
 import Notifications from './pages/Notifications.jsx';
+import Account from './pages/Account.jsx';
 
 import Login from './pages/auth/Login.jsx';
 import Register from './pages/auth/Register.jsx';
@@ -54,6 +55,7 @@ export default function App() {
                 <Route path="payment" element={<Payment />} />
                 <Route path="status" element={<Status />} />
                 <Route path="notifications" element={<Notifications />} />
+                <Route path="account" element={<Account />} />
               </Route>
             </Route>
 
@@ -63,6 +65,7 @@ export default function App() {
                 <Route path="applications" element={<AdminApplications />} />
                 <Route path="applications/:id" element={<AdminReview />} />
                 <Route path="notifications" element={<Notifications />} />
+                <Route path="account" element={<Account />} />
                 <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}>
                   <Route path="courses" element={<AdminCourses />} />
                   <Route path="cutoffs" element={<AdminCutOffs />} />

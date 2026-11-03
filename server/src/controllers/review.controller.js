@@ -1,5 +1,6 @@
 import { Application } from '../models/Application.js';
 import { Document } from '../models/Document.js';
+import { Payment } from '../models/Payment.js';
 import { User } from '../models/User.js';
 import { STATUS, canTransition, STATUS_TRANSITIONS } from '../constants/status.js';
 import { ROLES } from '../constants/roles.js';
@@ -8,7 +9,7 @@ import { env } from '../config/env.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ok, paginated } from '../utils/apiResponse.js';
-import { parsePagination } from '../utils/pagination.js';
+import { pageMeta, parsePagination } from '../utils/pagination.js';
 import { notify } from '../services/notify.js';
 import { emitStatusChange } from '../sockets/emitStatusChange.js';
 
@@ -31,6 +32,10 @@ export const listApplications = asyncHandler(async (req, res) => {
   if (course) filter['coursePreferences.course'] = course;
   if (officer) filter.assignedOfficer = officer;
   if (mine === 'true') filter.assignedOfficer = req.user._id;
+  if (req.query.fee === 'pending') {
+    const pendingPayments = await Payment.find({ status: 'PENDING_VERIFICATION' }).select('_id');
+    filter.payment = { $in: pendingPayments.map((p) => p._id) };
+  }
 
   if (q) {
     const rx = new RegExp(String(q).trim(), 'i');
@@ -43,6 +48,7 @@ export const listApplications = asyncHandler(async (req, res) => {
       .populate('applicant', 'name email phone')
       .populate('coursePreferences.course', 'code name')
       .populate('assignedOfficer', 'name')
+      .populate('payment', 'status method')
       .sort({ submittedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -76,6 +82,10 @@ export const changeStatus = asyncHandler(async (req, res) => {
     });
     if (pending > 0) {
       throw ApiError.badRequest(`${pending} document(s) are not approved yet — verify them first`);
+    }
+    const fee = await Payment.findById(application.payment).select('status');
+    if (fee?.status !== 'PAID') {
+      throw ApiError.badRequest('The application fee is not confirmed yet — verify the payment first');
     }
   }
 
@@ -120,9 +130,12 @@ export const assignOfficer = asyncHandler(async (req, res) => {
 });
 
 export const listOfficers = asyncHandler(async (req, res) => {
-  const officers = await User.find({ role: { $in: [ROLES.OFFICER, ROLES.ADMIN] }, isActive: true })
-    .select('name email role')
-    .sort({ name: 1 });
+  const paging = parsePagination(req.query);
+  const filter = { role: { $in: [ROLES.OFFICER, ROLES.ADMIN] } };
+  const [officers, total] = await Promise.all([
+    User.find(filter).select('name email role isActive').sort({ name: 1 }).skip(paging.skip).limit(paging.limit),
+    User.countDocuments(filter),
+  ]);
 
   const counts = await Application.aggregate([
     { $match: { assignedOfficer: { $ne: null } } },
@@ -132,7 +145,10 @@ export const listOfficers = asyncHandler(async (req, res) => {
 
   return ok(
     res,
-    { officers: officers.map((o) => ({ ...o.toObject(), assignedCount: byOfficer[String(o._id)] || 0 })) },
+    {
+      officers: officers.map((o) => ({ ...o.toObject(), assignedCount: byOfficer[String(o._id)] || 0 })),
+      pagination: pageMeta(total, paging),
+    },
     'Officers fetched',
   );
 });

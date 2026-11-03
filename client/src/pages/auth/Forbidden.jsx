@@ -10,7 +10,7 @@ export default function Forbidden() {
     <div className="grid min-h-screen place-items-center p-6">
       <div className="card max-w-md p-8 text-center">
         <p className="text-4xl">🔒</p>
-        <h1 className="mt-3 text-xl font-semibold text-slate-900">403 — Not your area</h1>
+        <h1 className="page-title mt-3">403 — Not your area</h1>
         <p className="mt-2 text-sm text-slate-600">
           Your role ({user?.role || 'guest'}) cannot open that page.
         </p>

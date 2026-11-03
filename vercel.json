@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm install --prefix server --omit=dev && npm install --prefix client",
+  "buildCommand": "npm run build --prefix client && node server/seed/vercel-seed.js",
+  "outputDirectory": "client/dist",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30,
+      "includeFiles": "server/src/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/((?!assets/|payments/|seed-files/|favicon).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

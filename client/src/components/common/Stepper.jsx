@@ -12,12 +12,12 @@ export default function Stepper({ steps, current, onStepClick }) {
               disabled={!clickable}
               onClick={clickable ? () => onStepClick(i) : undefined}
               className={`flex items-center gap-2 rounded-full px-2.5 py-1 transition
-                ${active ? 'bg-brand-600 text-white' : done ? 'text-brand-700 hover:bg-brand-50' : 'text-slate-400'}
+                ${active ? 'bg-ink text-brand-500' : done ? 'text-ink hover:bg-sand' : 'text-slate-400'}
                 ${clickable ? 'cursor-pointer' : 'cursor-default'}`}
             >
               <span
                 className={`grid h-5 w-5 place-items-center rounded-full text-[11px] font-semibold
-                  ${active ? 'bg-white text-brand-700' : done ? 'bg-brand-100 text-brand-700' : 'bg-slate-200 text-slate-500'}`}
+                  ${active ? 'bg-brand-500 text-ink' : done ? 'bg-brand-500 text-ink' : 'bg-slate-200 text-slate-500'}`}
               >
                 {done ? '✓' : i + 1}
               </span>

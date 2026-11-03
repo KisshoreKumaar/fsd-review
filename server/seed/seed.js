@@ -11,6 +11,7 @@ import { logger } from '../src/utils/logger.js';
 import { seedStaff } from './users.js';
 import { seedCourses } from './courses.js';
 import { seedApplications } from './applications.js';
+import { seedDemoStudent, DEMO_STUDENT } from './demoStudent.js';
 
 const wipe = async () => {
   const names = ['applications', 'documents', 'payments', 'meritlists', 'notifications', 'counters'];
@@ -30,6 +31,9 @@ const run = async () => {
 
   const { applications, password } = await seedApplications({ courses, officers });
   logger.info(`Applications created: ${applications.length} (applicant password: ${password})`);
+
+  const demo = await seedDemoStudent();
+  logger.info(`Demo student ready: ${DEMO_STUDENT.email} — ${demo.application.applicationNo}, fee unpaid`);
 
   await disconnectDb();
 };

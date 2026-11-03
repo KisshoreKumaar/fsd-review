@@ -7,7 +7,9 @@ import { formatBytes, formatDateTime } from '../../utils/format.js';
 import { apiMessage } from '../../api/client.js';
 import * as documentApi from '../../api/document.api.js';
 
-const MAX_BYTES = 5 * 1024 * 1024;
+// Vercel functions accept request bodies up to ~4.5 MB, so the hosted build sets 4.
+const MAX_MB = Number(import.meta.env.VITE_MAX_UPLOAD_MB || 5);
+const MAX_BYTES = MAX_MB * 1024 * 1024;
 
 export default function DocumentCard({ type, document: doc, applicationId, onChanged, readOnly }) {
   const inputRef = useRef(null);
@@ -19,7 +21,7 @@ export default function DocumentCard({ type, document: doc, applicationId, onCha
     event.target.value = '';
     if (!file) return;
     if (file.size > MAX_BYTES) {
-      toast.error('File is larger than 5 MB');
+      toast.error(`File is larger than ${MAX_MB} MB`);
       return;
     }
 
@@ -59,7 +61,7 @@ export default function DocumentCard({ type, document: doc, applicationId, onCha
             {doc.originalName} · {formatBytes(doc.sizeBytes)} · uploaded {formatDateTime(doc.createdAt)}
           </p>
         ) : (
-          <p className="mt-1 text-xs text-slate-500">PDF, JPEG or PNG · up to 5 MB</p>
+          <p className="mt-1 text-xs text-slate-500">PDF, JPEG or PNG · up to {MAX_MB} MB</p>
         )}
 
         {doc?.verificationStatus === 'REJECTED' && (

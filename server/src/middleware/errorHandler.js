@@ -1,5 +1,6 @@
 import { logger } from '../utils/logger.js';
 import { ApiError } from '../utils/ApiError.js';
+import { env } from '../config/env.js';
 
 export const notFoundHandler = (req, res, next) => {
   next(ApiError.notFound(`Route not found: ${req.method} ${req.originalUrl}`));
@@ -29,7 +30,7 @@ export const errorHandler = (err, req, res, next) => {
     message = 'Invalid token';
   } else if (err.name === 'MulterError') {
     statusCode = 400;
-    message = err.code === 'LIMIT_FILE_SIZE' ? 'File exceeds the 5 MB limit' : err.message;
+    message = err.code === 'LIMIT_FILE_SIZE' ? `File exceeds the ${Math.round(env.uploads.maxBytes / 1048576)} MB limit` : err.message;
   }
 
   if (statusCode >= 500) logger.error(err.stack || err);

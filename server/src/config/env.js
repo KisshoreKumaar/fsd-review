@@ -12,16 +12,28 @@ dotenv.config({ path: path.join(repoRoot, '.env') });
 
 const num = (value, fallback) => (value ? Number(value) : fallback);
 
+// Vercel exposes the deployment's own hostnames; allow them so preview and
+// production URLs work without editing CLIENT_ORIGIN for each deployment.
+const vercelOrigins = [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]
+  .filter(Boolean)
+  .map((host) => `https://${host}`);
+const isProd = process.env.NODE_ENV === 'production';
+
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
-  isProd: process.env.NODE_ENV === 'production',
+  isProd,
+  isVercel: Boolean(process.env.VERCEL),
+  // Show OTP / reset codes and temporary passwords on screen. Always on in
+  // development; DEMO_MODE=true turns it on for a hosted demo without SMTP.
+  exposeCodes: !isProd || process.env.DEMO_MODE === 'true',
   isTest: process.env.NODE_ENV === 'test',
   port: num(process.env.PORT, 5050),
-  clientOrigins: (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
-    .split(',')
-    .map((o) => o.trim())
-    .filter(Boolean),
-  mongoUri: process.env.MONGO_URI || '',
+  clientOrigins: [
+    ...(process.env.CLIENT_ORIGIN || 'http://localhost:5173').split(',').map((o) => o.trim()),
+    ...vercelOrigins,
+  ].filter(Boolean),
+  // MONGODB_URI is the name Vercel's MongoDB Atlas integration uses.
+  mongoUri: process.env.MONGO_URI || process.env.MONGODB_URI || '',
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET || 'dev-access-secret',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',
@@ -36,6 +48,7 @@ export const env = {
     pass: process.env.SMTP_PASS || '',
     from: process.env.MAIL_FROM || 'College Admissions <no-reply@college.test>',
   },
+  blobToken: process.env.BLOB_READ_WRITE_TOKEN || '',
   cloudinary: {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
     apiKey: process.env.CLOUDINARY_API_KEY || '',
@@ -53,6 +66,11 @@ export const env = {
     keySecret: process.env.RAZORPAY_KEY_SECRET || '',
     webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || '',
     feePaise: num(process.env.APPLICATION_FEE_PAISE, 75000),
+  },
+  // UPI QR payment: shown on the Payment page when a payee name is set.
+  upi: {
+    payeeName: process.env.UPI_PAYEE_NAME || '',
+    qrUrl: process.env.UPI_QR_URL || '/payments/upi-qr.png',
   },
   admissionCycle: process.env.ADMISSION_CYCLE || '2026-27',
   seed: {

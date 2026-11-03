@@ -76,10 +76,20 @@ export const getMyPayment = asyncHandler(async (req, res) => {
     applicant: req.user._id,
     admissionCycle: env.admissionCycle,
   }).select('_id applicationNo');
-  if (!application) return ok(res, { payment: null, fee: applicationFee() }, 'No application yet');
+  if (!application) return ok(res, { payment: null, fee: applicationFee(), upi: null }, 'No application yet');
 
   const payment = await Payment.findOne({ application: application._id }).sort({ createdAt: -1 });
-  return ok(res, { payment, fee: applicationFee(), mockMode: !isRazorpayConfigured }, 'Payment fetched');
+  return ok(
+    res,
+    {
+      payment,
+      fee: applicationFee(),
+      mockMode: !isRazorpayConfigured,
+      razorpayEnabled: isRazorpayConfigured,
+      upi: env.upi.payeeName ? { payeeName: env.upi.payeeName, qrUrl: env.upi.qrUrl } : null,
+    },
+    'Payment fetched',
+  );
 });
 
 /** Called by the browser after Razorpay checkout (or by the mock "Pay now" button). */

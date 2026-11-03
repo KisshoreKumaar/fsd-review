@@ -43,7 +43,7 @@ export default function ApplicantDashboard() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Hello, {user?.name?.split(' ')[0]}</h1>
+        <h1 className="page-title">Hello, {user?.name?.split(' ')[0]}</h1>
         <p className="text-sm text-slate-500">Here is where your admission stands today.</p>
       </div>
 
@@ -57,7 +57,7 @@ export default function ApplicantDashboard() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Application no." value={application.applicationNo} />
+            <StatCard label="Application no." value={application.applicationNo} compact />
             <StatCard label="Status" value={<StatusBadge status={application.status} />} />
             <StatCard
               label="Academic %"

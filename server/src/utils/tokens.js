@@ -7,9 +7,12 @@ export const signAccessToken = (user) =>
     expiresIn: env.jwt.accessTtl,
   });
 
+// jwtid makes every refresh token unique, so revoking one never matches a
+// token issued to the same user within the same second.
 export const signRefreshToken = (user) =>
   jwt.sign({ sub: String(user._id), typ: 'refresh' }, env.jwt.refreshSecret, {
     expiresIn: env.jwt.refreshTtl,
+    jwtid: crypto.randomUUID(),
   });
 
 export const verifyAccessToken = (token) => jwt.verify(token, env.jwt.accessSecret);

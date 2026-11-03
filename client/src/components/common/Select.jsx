@@ -16,7 +16,7 @@ const Select = forwardRef(function Select(
         ref={ref}
         id={props.id || props.name}
         {...props}
-        className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-800
+        className={`w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-800
           focus:outline-none focus:ring-2 focus:ring-brand-500/40
           ${error ? 'border-rose-400' : 'border-slate-300'}`}
       >

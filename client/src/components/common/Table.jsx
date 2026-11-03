@@ -17,7 +17,7 @@ export default function Table({ columns, rows, loading, empty, rowKey = (r) => r
               <th
                 key={col.key}
                 scope="col"
-                className={`px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500
+                className={`px-4 py-3 text-left font-wide text-[10px] font-medium uppercase tracking-label text-slate-500
                   ${col.hideOnMobile ? 'hidden md:table-cell' : ''}`}
               >
                 {col.header}
@@ -30,7 +30,7 @@ export default function Table({ columns, rows, loading, empty, rowKey = (r) => r
             <tr
               key={rowKey(row)}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
-              className={onRowClick ? 'cursor-pointer hover:bg-brand-50/50' : ''}
+              className={onRowClick ? 'cursor-pointer hover:bg-brand-50' : ''}
             >
               {columns.map((col) => (
                 <td

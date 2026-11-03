@@ -4,6 +4,7 @@ import { env } from '../config/env.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ok, created } from '../utils/apiResponse.js';
+import { pageMeta, parsePagination } from '../utils/pagination.js';
 
 export const listCourses = asyncHandler(async (req, res) => {
   const { department, degreeLevel, q, includeInactive } = req.query;
@@ -13,9 +14,13 @@ export const listCourses = asyncHandler(async (req, res) => {
   if (!includeInactive) filter.isActive = true;
   if (q) filter.$or = [{ name: new RegExp(q, 'i') }, { code: new RegExp(q, 'i') }];
 
-  const courses = await Course.find(filter).sort({ department: 1, name: 1 });
-  const departments = await Course.distinct('department', { admissionCycle: filter.admissionCycle });
-  return ok(res, { courses, departments }, 'Courses fetched');
+  const paging = parsePagination(req.query);
+  const [courses, total, departments] = await Promise.all([
+    Course.find(filter).sort({ department: 1, name: 1 }).skip(paging.skip).limit(paging.limit),
+    Course.countDocuments(filter),
+    Course.distinct('department', { admissionCycle: filter.admissionCycle }),
+  ]);
+  return ok(res, { courses, departments, pagination: pageMeta(total, paging) }, 'Courses fetched');
 });
 
 export const getCourse = asyncHandler(async (req, res) => {

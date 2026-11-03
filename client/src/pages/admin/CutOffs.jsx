@@ -47,7 +47,7 @@ export default function CutOffs() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Category cut-offs</h1>
+        <h1 className="page-title">Category cut-offs</h1>
         <p className="text-sm text-slate-500">
           Applicants scoring below their category cut-off are excluded before ranking.
         </p>

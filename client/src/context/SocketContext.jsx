@@ -7,6 +7,9 @@ import { listNotifications, markAllRead, markRead } from '../api/notification.ap
 
 const SocketContext = createContext(null);
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5050';
+// "polling" on hosts without WebSockets (Vercel serverless); "socket" otherwise.
+const REALTIME = import.meta.env.VITE_REALTIME || 'socket';
+const POLL_MS = 15000;
 
 export function SocketProvider({ children }) {
   const { user } = useAuth();
@@ -15,14 +18,25 @@ export function SocketProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [unread, setUnread] = useState(0);
 
-  const refresh = useCallback(async () => {
+  const seen = useRef(null);
+
+  /** Loads the latest notifications; when polling, announces any that are new. */
+  const refresh = useCallback(async ({ announce = false } = {}) => {
     if (!user) return;
     try {
       const data = await listNotifications({ limit: 20 });
-      setNotifications(data.items.items);
+      const items = data.items.items;
+      if (announce && seen.current) {
+        const fresh = items.filter((n) => !seen.current.has(n._id));
+        fresh.forEach((n) => toast(n.title, { icon: '🔔' }));
+        if (fresh.length) window.dispatchEvent(new CustomEvent('application:status', { detail: fresh[0] }));
+      }
+      seen.current = new Set(items.map((n) => n._id));
+      setNotifications(items);
       setUnread(data.items.unreadCount);
+      if (REALTIME === 'polling') setConnected(true);
     } catch {
-      /* the badge is non-critical */
+      if (REALTIME === 'polling') setConnected(false);
     }
   }, [user]);
 
@@ -30,12 +44,21 @@ export function SocketProvider({ children }) {
     if (!user) {
       socketRef.current?.disconnect();
       socketRef.current = null;
+      seen.current = null;
       setNotifications([]);
       setUnread(0);
       return undefined;
     }
 
     refresh();
+    if (REALTIME === 'polling') {
+      const timer = setInterval(() => refresh({ announce: true }), POLL_MS);
+      return () => {
+        clearInterval(timer);
+        seen.current = null;
+      };
+    }
+
     const socket = io(SOCKET_URL, {
       auth: { token: getAccessToken() },
       transports: ['websocket', 'polling'],

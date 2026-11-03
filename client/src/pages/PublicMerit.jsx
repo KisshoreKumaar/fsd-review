@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { publishedMeritLists } from '../api/merit.api.js';
 import { apiMessage } from '../api/client.js';
-import Button from '../components/common/Button.jsx';
+import SiteHeader from '../components/site/SiteHeader.jsx';
+import SiteFooter from '../components/site/SiteFooter.jsx';
 import Spinner from '../components/common/Spinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import { formatDateTime } from '../utils/format.js';
@@ -29,19 +29,14 @@ export default function PublicMerit() {
   });
 
   return (
-    <div className="min-h-screen">
-      <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-8">
-        <Link to="/" className="flex items-center gap-2 font-semibold text-slate-900">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 text-sm font-bold text-white">CA</span>
-          College Admissions
-        </Link>
-        <Link to="/login"><Button size="sm" variant="secondary">Sign in</Button></Link>
-      </header>
+    <div className="min-h-screen bg-cream">
+      <SiteHeader />
 
-      <main className="mx-auto max-w-4xl px-4 py-10 sm:px-8">
-        <h1 className="text-2xl font-semibold text-slate-900">Published merit lists</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Results for the 2026–27 admission cycle. Find your application number to see your rank.
+      <main className="mx-auto max-w-5xl px-4 py-16 sm:px-8">
+        <p className="eyebrow text-brand-600">Admission cycle 2026–27</p>
+        <h1 className="display mt-4 text-5xl sm:text-6xl">Published Merit Lists</h1>
+        <p className="mt-5 max-w-lg text-slate-700">
+          Find your application number to see your rank, merit score and whether a seat has been allotted.
         </p>
 
         {loading && <Spinner label="Loading results…" />}
@@ -57,13 +52,13 @@ export default function PublicMerit() {
 
         {list && (
           <>
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-10 flex flex-wrap gap-2">
               {lists.map((l, i) => (
                 <button
                   key={l.id}
                   onClick={() => setActive(i)}
-                  className={`rounded-full px-3 py-1.5 text-sm transition ${
-                    i === active ? 'bg-brand-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-300'
+                  className={`eyebrow rounded-full px-4 py-2 transition ${
+                    i === active ? 'bg-ink text-brand-500' : 'bg-white text-ink ring-1 ring-ink/70 hover:bg-sand'
                   }`}
                 >
                   {l.course?.code}
@@ -73,7 +68,7 @@ export default function PublicMerit() {
 
             <div className="card mt-4 overflow-hidden">
               <div className="border-b border-slate-200 px-5 py-4">
-                <h2 className="text-sm font-semibold text-slate-900">
+                <h2 className="font-wide text-[15px] font-medium uppercase">
                   {list.course?.code} — {list.course?.name}
                 </h2>
                 <p className="mt-0.5 text-xs text-slate-500">
@@ -124,6 +119,7 @@ export default function PublicMerit() {
           </>
         )}
       </main>
+      <SiteFooter />
     </div>
   );
 }

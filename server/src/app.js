@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 
 import { env } from './config/env.js';
+import { ApiError } from './utils/ApiError.js';
 import { logger } from './utils/logger.js';
 import { apiLimiter } from './middleware/rateLimit.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -20,7 +21,7 @@ export const createApp = () => {
     cors({
       origin: (origin, cb) => {
         if (!origin || env.clientOrigins.includes(origin)) return cb(null, true);
-        return cb(new Error(`Origin not allowed by CORS: ${origin}`));
+        return cb(ApiError.forbidden(`Origin not allowed: ${origin}`));
       },
       credentials: true,
     }),

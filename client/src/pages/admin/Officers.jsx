@@ -86,7 +86,7 @@ export default function Officers() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Verification officers</h1>
+          <h1 className="page-title">Verification officers</h1>
           <p className="text-sm text-slate-500">Accounts that can verify documents and move applications.</p>
         </div>
         <Button onClick={() => setOpen(true)}>+ Add officer</Button>

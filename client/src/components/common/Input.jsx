@@ -13,7 +13,7 @@ const Input = forwardRef(function Input({ label, error, hint, className = '', ..
         ref={ref}
         id={props.id || props.name}
         {...props}
-        className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400
+        className={`w-full rounded-xl border px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400
           focus:outline-none focus:ring-2 focus:ring-brand-500/40 disabled:bg-slate-50
           ${error ? 'border-rose-400' : 'border-slate-300'}`}
       />

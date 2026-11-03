@@ -10,7 +10,7 @@ const start = async () => {
 
   const app = createApp();
   const server = http.createServer(app);
-  initSockets(server);
+  const io = initSockets(server);
 
   server.listen(env.port, () => {
     logger.info(`API listening on http://localhost:${env.port}/api/v1 (${env.nodeEnv})`);
@@ -18,7 +18,11 @@ const start = async () => {
 
   const shutdown = (signal) => {
     logger.warn(`${signal} received — shutting down`);
+    // Open WebSocket / keep-alive connections would keep server.close() waiting forever.
+    io.close();
+    server.closeAllConnections?.();
     server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 5000).unref();
   };
   ['SIGINT', 'SIGTERM'].forEach((sig) => process.on(sig, () => shutdown(sig)));
 };

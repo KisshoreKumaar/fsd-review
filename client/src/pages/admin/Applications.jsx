@@ -28,6 +28,7 @@ export default function Applications() {
   const status = params.get('status') || '';
   const course = params.get('course') || '';
   const mine = params.get('mine') === 'true';
+  const feePending = params.get('fee') === 'pending';
   const page = Number(params.get('page') || 1);
 
   const setParam = (key, value) => {
@@ -44,11 +45,11 @@ export default function Applications() {
 
   useEffect(() => {
     setLoading(true);
-    listApplications({ status, course, q: debounced, mine: mine || undefined, page, limit: 10 })
+    listApplications({ status, course, q: debounced, mine: mine || undefined, fee: feePending ? 'pending' : undefined, page, limit: 10 })
       .then(setData)
       .catch((err) => toast.error(apiMessage(err, 'Could not load applications')))
       .finally(() => setLoading(false));
-  }, [status, course, debounced, mine, page]);
+  }, [status, course, debounced, mine, feePending, page]);
 
   const columns = [
     {
@@ -89,7 +90,18 @@ export default function Applications() {
       hideOnMobile: true,
       render: (a) => a.assignedOfficer?.name || <span className="text-slate-400">Unassigned</span>,
     },
-    { key: 'status', header: 'Status', render: (a) => <StatusBadge status={a.status} /> },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (a) => (
+        <div className="space-y-1">
+          <StatusBadge status={a.status} />
+          {a.payment?.status === 'PENDING_VERIFICATION' && (
+            <p className="text-[11px] font-medium text-amber-700">Fee to verify</p>
+          )}
+        </div>
+      ),
+    },
     {
       key: 'actions',
       header: '',
@@ -104,7 +116,7 @@ export default function Applications() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Applications</h1>
+        <h1 className="page-title">Applications</h1>
         <p className="text-sm text-slate-500">{data?.pagination?.total ?? '…'} applications in this cycle</p>
       </div>
 
@@ -133,7 +145,7 @@ export default function Applications() {
             onChange={(e) => setParam('course', e.target.value)}
             options={courses.map((c) => ({ value: c.id, label: `${c.code} — ${c.name}` }))}
           />
-          <div className="flex items-end">
+          <div className="flex flex-wrap items-end">
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"
@@ -142,6 +154,15 @@ export default function Applications() {
                 className="h-4 w-4 rounded border-slate-300"
               />
               Assigned to me
+            </label>
+            <label className="ml-4 flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={feePending}
+                onChange={(e) => setParam('fee', e.target.checked ? 'pending' : '')}
+                className="h-4 w-4 rounded border-slate-300"
+              />
+              Fee to verify
             </label>
           </div>
         </div>

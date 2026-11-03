@@ -30,6 +30,7 @@ export const getStats = asyncHandler(async (req, res) => {
     ]),
     Application.countDocuments({ admissionCycle: cycle }),
   ]);
+  const awaitingVerification = await Payment.countDocuments({ status: 'PENDING_VERIFICATION' });
 
   const byStatus = Object.fromEntries(STATUS_VALUES.map((s) => [s, 0]));
   byStatusRaw.forEach((row) => {
@@ -53,6 +54,7 @@ export const getStats = asyncHandler(async (req, res) => {
       payments: {
         collectedPaise: payments[0]?.total || 0,
         count: payments[0]?.count || 0,
+        awaitingVerification,
       },
       courses: courses.map((c) => ({
         id: c._id,
@@ -74,7 +76,14 @@ export const createOfficer = asyncHandler(async (req, res) => {
   if (await User.exists({ email: email.toLowerCase() })) throw ApiError.conflict('Email already in use');
 
   const password = `Ofc@${crypto.randomBytes(4).toString('hex')}`;
-  const officer = new User({ name, email, phone, role: ROLES.OFFICER, isEmailVerified: true });
+  const officer = new User({
+    name,
+    email,
+    phone,
+    role: ROLES.OFFICER,
+    isEmailVerified: true,
+    mustChangePassword: true,
+  });
   await officer.setPassword(password);
   await officer.save();
 
@@ -82,7 +91,7 @@ export const createOfficer = asyncHandler(async (req, res) => {
 
   return created(
     res,
-    { officer: officer.toPublic(), ...(env.isProd ? {} : { temporaryPassword: password }) },
+    { officer: officer.toPublic(), ...(env.exposeCodes ? { temporaryPassword: password } : {}) },
     'Officer account created',
   );
 });

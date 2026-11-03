@@ -6,6 +6,7 @@ import { ROLES } from '../constants/roles.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ok, created } from '../utils/apiResponse.js';
+import { pageMeta, parsePagination } from '../utils/pagination.js';
 import { uploadFile, removeFile } from '../services/storage.js';
 import { notify } from '../services/notify.js';
 import { DOCUMENT_LABELS } from '../constants/documents.js';
@@ -64,10 +65,13 @@ export const listDocuments = asyncHandler(async (req, res) => {
   const isStaff = [ROLES.OFFICER, ROLES.ADMIN].includes(req.user.role);
   if (!isOwner && !isStaff) throw ApiError.forbidden();
 
-  const documents = await Document.find({ application: application._id })
-    .populate('verifiedBy', 'name')
-    .sort({ createdAt: 1 });
-  return ok(res, { documents }, 'Documents fetched');
+  const paging = parsePagination(req.query);
+  const filter = { application: application._id };
+  const [documents, total] = await Promise.all([
+    Document.find(filter).populate('verifiedBy', 'name').sort({ createdAt: 1 }).skip(paging.skip).limit(paging.limit),
+    Document.countDocuments(filter),
+  ]);
+  return ok(res, { documents, pagination: pageMeta(total, paging) }, 'Documents fetched');
 });
 
 export const deleteDocument = asyncHandler(async (req, res) => {

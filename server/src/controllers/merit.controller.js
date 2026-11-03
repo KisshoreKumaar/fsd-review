@@ -6,6 +6,7 @@ import { env } from '../config/env.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ok } from '../utils/apiResponse.js';
+import { pageMeta, parsePagination } from '../utils/pagination.js';
 import { rankApplications } from '../services/merit.js';
 import { notify } from '../services/notify.js';
 import { emitStatusChange } from '../sockets/emitStatusChange.js';
@@ -56,12 +57,18 @@ export const listMeritLists = asyncHandler(async (req, res) => {
   const filter = { admissionCycle: req.query.admissionCycle || env.admissionCycle };
   if (req.query.published === 'true') filter.isPublished = true;
 
-  const meritLists = await MeritList.find(filter)
-    .populate('course', 'code name department totalSeats seatsFilled')
-    .populate('publishedBy', 'name')
-    .select('-entries')
-    .sort({ updatedAt: -1 });
-  return ok(res, { meritLists }, 'Merit lists fetched');
+  const paging = parsePagination(req.query);
+  const [meritLists, total] = await Promise.all([
+    MeritList.find(filter)
+      .populate('course', 'code name department totalSeats seatsFilled')
+      .populate('publishedBy', 'name')
+      .select('-entries')
+      .sort({ updatedAt: -1 })
+      .skip(paging.skip)
+      .limit(paging.limit),
+    MeritList.countDocuments(filter),
+  ]);
+  return ok(res, { meritLists, pagination: pageMeta(total, paging) }, 'Merit lists fetched');
 });
 
 export const publishMeritList = asyncHandler(async (req, res) => {
@@ -123,9 +130,15 @@ export const publicMeritLists = asyncHandler(async (req, res) => {
   const filter = { isPublished: true, admissionCycle: req.query.admissionCycle || env.admissionCycle };
   if (req.query.courseId) filter.course = req.query.courseId;
 
-  const meritLists = await MeritList.find(filter)
-    .populate('course', 'code name department degreeLevel totalSeats')
-    .sort({ publishedAt: -1 });
+  const paging = parsePagination(req.query);
+  const [meritLists, total] = await Promise.all([
+    MeritList.find(filter)
+      .populate('course', 'code name department degreeLevel totalSeats')
+      .sort({ publishedAt: -1 })
+      .skip(paging.skip)
+      .limit(paging.limit),
+    MeritList.countDocuments(filter),
+  ]);
 
   // Published lists are public — strip everything but rank, number and outcome.
   const sanitised = meritLists.map((list) => ({
@@ -144,5 +157,5 @@ export const publicMeritLists = asyncHandler(async (req, res) => {
     })),
   }));
 
-  return ok(res, { meritLists: sanitised }, 'Published merit lists');
+  return ok(res, { meritLists: sanitised, pagination: pageMeta(total, paging) }, 'Published merit lists');
 });

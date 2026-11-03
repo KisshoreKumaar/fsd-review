@@ -6,6 +6,7 @@ import { env } from '../config/env.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ok, created } from '../utils/apiResponse.js';
+import { pageMeta, parsePagination } from '../utils/pagination.js';
 import { nextApplicationNo } from '../services/applicationNumber.js';
 import { checkCompleteness, pickEditableFields } from '../services/application.js';
 import { notify } from '../services/notify.js';
@@ -142,8 +143,15 @@ export const getApplication = asyncHandler(async (req, res) => {
 });
 
 export const getCourseOptions = asyncHandler(async (req, res) => {
-  const courses = await Course.find({ isActive: true, admissionCycle: env.admissionCycle })
-    .select('code name department degreeLevel totalSeats seatsFilled eligibility cutOff')
-    .sort({ department: 1, name: 1 });
-  return ok(res, { courses }, 'Course options fetched');
+  const filter = { isActive: true, admissionCycle: env.admissionCycle };
+  const paging = parsePagination(req.query);
+  const [courses, total] = await Promise.all([
+    Course.find(filter)
+      .select('code name department degreeLevel totalSeats seatsFilled eligibility cutOff')
+      .sort({ department: 1, name: 1 })
+      .skip(paging.skip)
+      .limit(paging.limit),
+    Course.countDocuments(filter),
+  ]);
+  return ok(res, { courses, pagination: pageMeta(total, paging) }, 'Course options fetched');
 });

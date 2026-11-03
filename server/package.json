@@ -10,9 +10,11 @@
     "seed": "node seed/seed.js",
     "test": "vitest run",
     "lint": "eslint src seed tests",
-    "db": "node scripts/dev-mongo.js"
+    "db": "node scripts/dev-mongo.js",
+    "demo:reset": "node seed/demo.js"
   },
   "dependencies": {
+    "@vercel/blob": "2.8.2",
     "bcryptjs": "2.4.3",
     "cloudinary": "2.5.1",
     "cookie-parser": "1.4.7",

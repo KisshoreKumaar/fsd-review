@@ -47,11 +47,37 @@ const cloudinaryDriver = {
   },
 };
 
-/** Cloudinary when credentials exist, local disk otherwise. */
-export const storage = isCloudinaryConfigured ? cloudinaryDriver : localDriver;
+/** Vercel Blob — used on Vercel, where the function filesystem is read-only. */
+const blobDriver = {
+  name: 'blob',
+  async upload(file, { folder = 'documents' } = {}) {
+    const { put } = await import('@vercel/blob');
+    const ext = path.extname(file.originalname) || '';
+    const blob = await put(`documents/${folder}/${crypto.randomBytes(8).toString('hex')}${ext}`, file.buffer, {
+      access: 'public',
+      contentType: file.mimetype,
+      token: env.blobToken,
+    });
+    return { url: blob.url, publicId: blob.url, driver: 'blob' };
+  },
+  async remove(publicId) {
+    if (!publicId?.startsWith('http')) return;
+    const { del } = await import('@vercel/blob');
+    await del(publicId, { token: env.blobToken });
+  },
+};
 
-if (!isCloudinaryConfigured) {
-  logger.warn(`Cloudinary not configured — uploads go to ${env.uploads.dir}`);
+/** Cloudinary when configured, then Vercel Blob, then local disk. */
+const pick = () => {
+  if (isCloudinaryConfigured) return cloudinaryDriver;
+  if (env.blobToken) return blobDriver;
+  return localDriver;
+};
+export const storage = pick();
+
+if (storage === localDriver) {
+  logger.warn(`Cloudinary/Blob not configured — uploads go to ${env.uploads.dir}`);
+  if (env.isVercel) logger.error('Running on Vercel without BLOB_READ_WRITE_TOKEN: uploads will fail (read-only filesystem)');
 }
 
 export const uploadFile = (file, options) => storage.upload(file, options);

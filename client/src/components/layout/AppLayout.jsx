@@ -14,7 +14,7 @@ export default function AppLayout() {
       <Navbar onMenuClick={() => setMenuOpen((v) => !v)} />
       <div className="flex">
         <Sidebar role={user?.role} open={menuOpen} onClose={() => setMenuOpen(false)} />
-        <main className="min-w-0 flex-1 px-3 py-5 sm:px-6 sm:py-6">
+        <main className="min-w-0 flex-1 px-3 pb-10 pt-6 sm:px-8 sm:pt-10">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>

@@ -18,7 +18,19 @@ const resolveUri = async () => {
   return memoryServer.getUri();
 };
 
+let connecting = null;
+
+/** Safe to call on every request: reuses the open connection (serverless-friendly). */
 export const connectDb = async () => {
+  if (mongoose.connection.readyState === 1) return mongoose.connection;
+  if (connecting) return connecting;
+  connecting = open().finally(() => {
+    connecting = null;
+  });
+  return connecting;
+};
+
+const open = async () => {
   mongoose.set('strictQuery', true);
   const uri = await resolveUri();
   await mongoose.connect(uri, {

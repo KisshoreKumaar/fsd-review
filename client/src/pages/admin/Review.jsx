@@ -14,6 +14,7 @@ import StatusBadge from '../../components/common/StatusBadge.jsx';
 import StatusTimeline from '../../components/common/StatusTimeline.jsx';
 import DocumentReviewList from '../../components/admin/DocumentReviewList.jsx';
 import StatusActionPanel from '../../components/admin/StatusActionPanel.jsx';
+import PaymentReviewCard from '../../components/admin/PaymentReviewCard.jsx';
 import { formatDate, percent, titleCase } from '../../utils/format.js';
 
 function Field({ label, value }) {
@@ -68,7 +69,7 @@ export default function Review() {
           <Button size="sm" variant="ghost" onClick={() => navigate('/admin/applications')}>
             ← Back to queue
           </Button>
-          <h1 className="mt-1 text-xl font-semibold text-slate-900">
+          <h1 className="page-title mt-1">
             {app.applicationNo} · {app.applicant?.name}
           </h1>
           <p className="text-sm text-slate-500">
@@ -138,6 +139,8 @@ export default function Review() {
             )}
           </SectionCard>
 
+          <PaymentReviewCard payment={app.payment} onChanged={load} />
+
           <SectionCard title="Assignment">
             <p className="text-sm text-slate-600">
               Current officer: <b>{app.assignedOfficer?.name || 'Unassigned'}</b>
@@ -149,7 +152,7 @@ export default function Review() {
                 placeholder="Select an officer"
                 value={app.assignedOfficer?._id || ''}
                 onChange={(e) => e.target.value && assign(e.target.value)}
-                options={officers.map((o) => ({
+                options={officers.filter((o) => o.isActive !== false).map((o) => ({
                   value: o._id,
                   label: `${o.name} (${o.assignedCount} assigned)`,
                 }))}

@@ -10,3 +10,8 @@ server/uploads/
 .vscode/
 .idea/
 .mongo-data/
+.vercel
+
+# local deliverables (reports / decks) — not part of the app
+Combined Review - Final.pptx
+Final_Review_Report_Online_College_Admission.docx

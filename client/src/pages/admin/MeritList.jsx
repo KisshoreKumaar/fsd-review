@@ -101,7 +101,7 @@ export default function MeritListPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Merit lists</h1>
+        <h1 className="page-title">Merit lists</h1>
         <p className="text-sm text-slate-500">
           Score = academic % × 0.80 + required-subject average × 0.20. Only verified applicants above their category
           cut-off are ranked.

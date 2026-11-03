@@ -15,11 +15,6 @@ const schema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
-const DEMO = [
-  { label: 'Administrator', email: 'admin@college.test', password: 'Admin@12345' },
-  { label: 'Verification officer', email: 'officer@college.test', password: 'Officer@12345' },
-  { label: 'Applicant', email: 'aarav.verma0@example.com', password: 'Applicant@123' },
-];
 
 export default function Login() {
   const { login } = useAuth();
@@ -28,16 +23,19 @@ export default function Login() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(schema), defaultValues: { email: '', password: '' } });
 
   const onSubmit = async (values) => {
     try {
       const user = await login(values);
-      toast.success(`Welcome back, ${user.name.split(' ')[0]}`);
-      const fallback = user.role === ROLES.APPLICANT ? '/app' : '/admin';
-      navigate(location.state?.from || fallback, { replace: true });
+      const firstName = user.name.replace(/^(Dr|Prof|Mr|Mrs|Ms)\.?\s+/i, '').split(' ')[0];
+      toast.success(`Welcome back, ${firstName}`);
+      // Only return to the remembered page if it belongs to this user's area —
+      // otherwise an applicant signing in after an admin would land on a 403.
+      const area = user.role === ROLES.APPLICANT ? '/app' : '/admin';
+      const from = location.state?.from;
+      navigate(from && from.startsWith(area) ? from : area, { replace: true });
     } catch (err) {
       const needsVerify = err?.response?.data?.errors?.[0]?.message === 'VERIFY_REQUIRED';
       if (needsVerify) {
@@ -49,10 +47,6 @@ export default function Login() {
     }
   };
 
-  const fill = (demo) => {
-    setValue('email', demo.email);
-    setValue('password', demo.password);
-  };
 
   return (
     <AuthShell
@@ -86,17 +80,6 @@ export default function Login() {
           Sign in
         </Button>
       </form>
-
-      <div className="mt-6 rounded-lg border border-dashed border-slate-300 p-3">
-        <p className="text-xs font-medium text-slate-500">Demo accounts — click to fill</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {DEMO.map((d) => (
-            <Button key={d.email} size="sm" variant="secondary" onClick={() => fill(d)}>
-              {d.label}
-            </Button>
-          ))}
-        </div>
-      </div>
     </AuthShell>
   );
 }

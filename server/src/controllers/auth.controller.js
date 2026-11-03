@@ -9,27 +9,13 @@ import {
   ROTATION_GRACE_MS,
   hashToken,
   clearCookieOptions,
-  refreshCookieOptions,
-  signAccessToken,
-  signRefreshToken,
   verifyRefreshToken,
 } from '../utils/tokens.js';
+import { issueSession } from '../services/session.js';
 import { sendMail } from '../services/mailer.js';
 import { otpEmail } from '../services/emailTemplates.js';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
-
-const issueSession = async (res, user) => {
-  const accessToken = signAccessToken(user);
-  const refreshToken = signRefreshToken(user);
-  user.previousRefreshTokenHash = user.refreshTokenHash;
-  user.refreshRotatedAt = new Date();
-  user.refreshTokenHash = hashToken(refreshToken);
-  user.lastLoginAt = new Date();
-  await user.save();
-  res.cookie(REFRESH_COOKIE, refreshToken, refreshCookieOptions());
-  return accessToken;
-};
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, phone, password } = req.body;
@@ -50,7 +36,7 @@ export const register = asyncHandler(async (req, res) => {
 
   return created(
     res,
-    { email: user.email, ...(env.isProd ? {} : { devOtp: otp.code }) },
+    { email: user.email, ...(env.exposeCodes ? { devOtp: otp.code } : {}) },
     'Registered. Check your email for the verification code.',
   );
 });
@@ -78,7 +64,7 @@ export const resendOtp = asyncHandler(async (req, res) => {
   await user.save();
   await sendMail({ to: user.email, ...otpEmail({ name: user.name, code: otp.code, minutes: OTP_TTL_MINUTES }) });
   if (!env.isProd) logger.info(`[dev] OTP for ${user.email} is ${otp.code}`);
-  return ok(res, env.isProd ? null : { devOtp: otp.code }, 'A new code has been sent');
+  return ok(res, env.exposeCodes ? { devOtp: otp.code } : null, 'A new code has been sent');
 });
 
 export const login = asyncHandler(async (req, res) => {

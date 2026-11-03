@@ -8,6 +8,7 @@ const APPLICANT_LINKS = [
   { to: '/app/payment', label: 'Fee payment', icon: '💳' },
   { to: '/app/status', label: 'Status & result', icon: '📈' },
   { to: '/app/notifications', label: 'Notifications', icon: '🔔' },
+  { to: '/app/account', label: 'Account', icon: '🔑' },
 ];
 
 const STAFF_LINKS = [
@@ -18,6 +19,7 @@ const STAFF_LINKS = [
   { to: '/admin/merit', label: 'Merit lists', icon: '🏅', adminOnly: true },
   { to: '/admin/officers', label: 'Officers', icon: '👥', adminOnly: true },
   { to: '/admin/notifications', label: 'Notifications', icon: '🔔' },
+  { to: '/admin/account', label: 'Account', icon: '🔑' },
 ];
 
 export default function Sidebar({ role, open, onClose }) {
@@ -29,7 +31,7 @@ export default function Sidebar({ role, open, onClose }) {
     <>
       {open && <button className="fixed inset-0 z-20 bg-slate-900/30 lg:hidden" onClick={onClose} aria-label="Close menu" />}
       <aside
-        className={`fixed z-20 h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto border-r border-slate-200 bg-white
+        className={`fixed z-20 h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto bg-cream
           px-3 py-4 transition-transform lg:static lg:translate-x-0
           ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
@@ -41,8 +43,8 @@ export default function Sidebar({ role, open, onClose }) {
               end={link.end}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition
-                 ${isActive ? 'bg-brand-50 font-medium text-brand-700' : 'text-slate-600 hover:bg-slate-100'}`
+                `flex items-center gap-3 rounded-full px-4 py-2.5 text-sm transition
+                 ${isActive ? 'bg-ink font-medium text-cream' : 'text-slate-700 hover:bg-sand'}`
               }
             >
               <span aria-hidden>{link.icon}</span>
@@ -50,7 +52,7 @@ export default function Sidebar({ role, open, onClose }) {
             </NavLink>
           ))}
         </nav>
-        <p className="mt-6 px-3 text-[11px] leading-relaxed text-slate-400">
+        <p className="mt-8 px-4 text-xs leading-relaxed text-slate-500">
           Admission cycle 2026–27
           <br />
           Need help? admissions@college.test

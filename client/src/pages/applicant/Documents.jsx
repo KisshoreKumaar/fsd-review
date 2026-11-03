@@ -48,7 +48,7 @@ export default function Documents() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Documents</h1>
+        <h1 className="page-title">Documents</h1>
         <p className="text-sm text-slate-500">
           {uploadedRequired}/{REQUIRED_DOCUMENT_TYPES.length} required documents uploaded · application{' '}
           {application.applicationNo}

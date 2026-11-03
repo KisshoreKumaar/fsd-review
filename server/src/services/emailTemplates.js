@@ -35,6 +35,17 @@ export const welcomeOfficerEmail = ({ name, email, password }) => ({
     `<p>Hello ${name},</p>
      <p>An administrator created a verification officer account for you.</p>
      <p>Email: <b>${email}</b><br/>Temporary password: <b>${password}</b></p>
-     <p>Please sign in and change it.</p>`,
+     <p>You will be asked to choose a new password the first time you sign in.</p>`,
+  ),
+});
+
+export const passwordResetEmail = ({ name, code, minutes }) => ({
+  subject: 'Reset your admission portal password',
+  html: shell(
+    'Password reset code',
+    `<p>Hello ${name},</p>
+     <p>Use this code to set a new password:</p>
+     <p style="font-size:28px;letter-spacing:6px;font-weight:700">${code}</p>
+     <p>The code expires in ${minutes} minutes. If you did not ask for a reset, you can ignore this e-mail.</p>`,
   ),
 });

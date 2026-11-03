@@ -9,6 +9,7 @@ import { env } from '../src/config/env.js';
 import { computePercentage } from '../src/services/application.js';
 import { nextApplicationNo } from '../src/services/applicationNumber.js';
 import { FIRST_NAMES, LAST_NAMES, CITIES, BOARDS, SCHOOLS } from './names.js';
+import { buildStatusHistory, daysAgo } from './history.js';
 
 const CATEGORY_MIX = ['GENERAL', 'GENERAL', 'GENERAL', 'OBC', 'OBC', 'SC', 'ST'];
 const PASSWORD = 'Applicant@123';
@@ -25,7 +26,6 @@ const STATUS_PLAN = [
 ];
 
 const pick = (arr, i) => arr[i % arr.length];
-const daysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000);
 
 const subjectsFor = (course, seed) => {
   const base = course.eligibility?.requiredSubjects?.length
@@ -38,46 +38,6 @@ const subjectsFor = (course, seed) => {
     // Deterministic spread, 58–98
     obtained: 58 + ((seed * 7 + i * 13) % 41),
   }));
-};
-
-const buildStatusHistory = (status, userId, officerId, submittedAt) => {
-  const history = [{ from: 'NEW', to: STATUS.DRAFT, changedBy: userId, at: daysAgo(40), remarks: 'Application started' }];
-  if (status === STATUS.DRAFT) return history;
-
-  history.push({ from: STATUS.DRAFT, to: STATUS.SUBMITTED, changedBy: userId, at: submittedAt, remarks: 'Submitted by applicant' });
-  if (status === STATUS.SUBMITTED) return history;
-
-  if (status === STATUS.WITHDRAWN) {
-    history.push({ from: STATUS.SUBMITTED, to: STATUS.WITHDRAWN, changedBy: userId, at: daysAgo(5), remarks: 'Joined another college' });
-    return history;
-  }
-
-  history.push({ from: STATUS.SUBMITTED, to: STATUS.UNDER_REVIEW, changedBy: officerId, at: daysAgo(12), remarks: 'Picked up for verification' });
-  if (status === STATUS.UNDER_REVIEW) return history;
-
-  if (status === STATUS.ACTION_REQUIRED) {
-    history.push({
-      from: STATUS.UNDER_REVIEW,
-      to: STATUS.ACTION_REQUIRED,
-      changedBy: officerId,
-      at: daysAgo(8),
-      remarks: 'Community certificate is illegible — please re-upload a clear scan.',
-    });
-    return history;
-  }
-  if (status === STATUS.REJECTED) {
-    history.push({
-      from: STATUS.UNDER_REVIEW,
-      to: STATUS.REJECTED,
-      changedBy: officerId,
-      at: daysAgo(6),
-      remarks: 'Does not meet the minimum eligibility percentage.',
-    });
-    return history;
-  }
-
-  history.push({ from: STATUS.UNDER_REVIEW, to: STATUS.VERIFIED, changedBy: officerId, at: daysAgo(4), remarks: 'All documents verified' });
-  return history;
 };
 
 export const seedApplications = async ({ courses, officers }) => {
@@ -157,8 +117,8 @@ export const seedApplications = async ({ courses, officers }) => {
           application: application._id,
           type,
           originalName: `${type.toLowerCase()}.pdf`,
-          url: `/uploads/samples/${type.toLowerCase()}.pdf`,
-          publicId: `samples/${type.toLowerCase()}.pdf`,
+          url: `/seed-files/samples/${type.toLowerCase()}.pdf`,
+          publicId: `seed-files/samples/${type.toLowerCase()}.pdf`,
           storageDriver: 'local',
           mimeType: 'application/pdf',
           sizeBytes: 180000 + i * 1000,

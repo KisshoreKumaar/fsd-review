@@ -48,6 +48,13 @@ export function AuthProvider({ children }) {
     return fresh;
   }, []);
 
+  const changePassword = useCallback(async (payload) => {
+    const { accessToken, user: fresh } = await authApi.changePassword(payload);
+    setAccessToken(accessToken);
+    setUser(fresh);
+    return fresh;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authApi.logoutUser();
@@ -57,8 +64,16 @@ export function AuthProvider({ children }) {
   }, [clear]);
 
   const value = useMemo(
-    () => ({ user, booting, login, logout, completeOtp, refreshUser: () => authApi.fetchMe().then(setUser) }),
-    [user, booting, login, logout, completeOtp],
+    () => ({
+      user,
+      booting,
+      login,
+      logout,
+      completeOtp,
+      changePassword,
+      refreshUser: () => authApi.fetchMe().then(setUser),
+    }),
+    [user, booting, login, logout, completeOtp, changePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

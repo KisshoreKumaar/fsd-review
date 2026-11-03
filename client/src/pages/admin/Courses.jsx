@@ -95,7 +95,7 @@ export default function Courses() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Courses</h1>
+          <h1 className="page-title">Courses</h1>
           <p className="text-sm text-slate-500">Seats, eligibility and availability for the 2026–27 cycle.</p>
         </div>
         <Button onClick={() => { setEditing(null); setOpen(true); }}>+ New course</Button>

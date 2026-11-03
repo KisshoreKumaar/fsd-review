@@ -8,5 +8,13 @@ export const parsePagination = (query = {}) => {
   return { page, limit, skip: (page - 1) * limit };
 };
 
+/** Pagination block returned next to a list. */
+export const pageMeta = (total, { page, limit }) => ({
+  total,
+  page,
+  limit,
+  pages: Math.max(1, Math.ceil(total / limit)),
+});
+
 export { DEFAULT_LIMIT, MAX_LIMIT };
 export default parsePagination;

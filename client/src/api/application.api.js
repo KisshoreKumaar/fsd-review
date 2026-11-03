@@ -2,7 +2,7 @@ import api from './client.js';
 
 export const getMyApplication = () => api.get('/applications/mine').then((r) => r.data.data);
 export const getCourseOptions = () =>
-  api.get('/applications/course-options').then((r) => r.data.data.courses);
+  api.get('/applications/course-options', { params: { limit: 100 } }).then((r) => r.data.data.courses);
 export const createApplication = (payload = {}) =>
   api.post('/applications', payload).then((r) => r.data.data.application);
 export const saveApplication = (id, payload) =>

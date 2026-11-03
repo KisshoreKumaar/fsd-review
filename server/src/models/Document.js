@@ -13,7 +13,7 @@ const documentSchema = new mongoose.Schema(
     originalName: String,
     url: { type: String, required: true },
     publicId: String,
-    storageDriver: { type: String, enum: ['cloudinary', 'local'], default: 'local' },
+    storageDriver: { type: String, enum: ['cloudinary', 'blob', 'local'], default: 'local' },
     mimeType: String,
     sizeBytes: Number,
     verificationStatus: {

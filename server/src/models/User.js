@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     otp: { type: otpSchema, select: false },
+    resetOtp: { type: otpSchema, select: false },
+    // Set for accounts created with a temporary password (officers).
+    mustChangePassword: { type: Boolean, default: false },
+    passwordChangedAt: Date,
     refreshTokenHash: { type: String, select: false },
     // Previous token stays valid for a few seconds so concurrent refreshes
     // (two tabs, React StrictMode) do not log the user out.
@@ -54,6 +58,7 @@ userSchema.methods.toPublic = function toPublic() {
     phone: this.phone,
     role: this.role,
     isEmailVerified: this.isEmailVerified,
+    mustChangePassword: this.mustChangePassword,
     createdAt: this.createdAt,
   };
 };

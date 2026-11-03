@@ -24,23 +24,23 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+        className="relative rounded-lg p-2 hover:bg-ink/10"
         aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}
       >
         🔔
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-[1rem] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+          <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-[1rem] place-items-center rounded-full bg-ink px-1 text-[10px] font-semibold text-brand-500">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
         <span
-          className={`absolute bottom-1 right-1.5 h-1.5 w-1.5 rounded-full ${connected ? 'bg-emerald-500' : 'bg-slate-300'}`}
+          className={`absolute bottom-1 right-1.5 h-1.5 w-1.5 rounded-full ${connected ? 'bg-emerald-700' : 'bg-ink/30'}`}
           title={connected ? 'Live updates on' : 'Reconnecting…'}
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 z-40 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+        <div className="absolute right-0 z-40 mt-3 w-80 max-w-[90vw] overflow-hidden rounded-2xl border border-slate-200 bg-white text-ink shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
             <h3 className="text-sm font-semibold text-slate-900">Notifications</h3>
             {unread > 0 && (
@@ -72,7 +72,7 @@ export default function NotificationBell() {
           <Link
             to={allHref}
             onClick={() => setOpen(false)}
-            className="block bg-slate-50 px-4 py-2.5 text-center text-xs font-medium text-brand-700 hover:bg-slate-100"
+            className="block bg-ink px-4 py-3 text-center font-wide text-[10px] font-medium uppercase tracking-[0.12em] text-brand-500 hover:text-brand-300"
           >
             See all notifications
           </Link>

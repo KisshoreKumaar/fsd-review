@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+# FSDReview
+=======
 # Online College Admission Management System
 
 A MERN application that digitises the full admission cycle: applicants apply online, upload
@@ -35,8 +38,11 @@ Then open **http://localhost:5173**.
 | Administrator | `admin@college.test` | `Admin@12345` |
 | Verification officer | `officer@college.test` | `Officer@12345` |
 | Applicant (any seeded one) | `aarav.verma0@example.com` | `Applicant@123` |
+| **Demo student** (form + documents complete, fee unpaid) | `arjun.ramesh@example.com` | `Arjun@2026` |
 
-The login page has a **Demo accounts** row that fills the form for you.
+Run `npm run demo:reset` before a presentation to put the demo student back to "ready to pay": every
+form section, both course preferences and all four required documents are in place, so the demo starts at
+**Fee payment → Pay by UPI**.
 
 ### Databases you can use
 
@@ -225,6 +231,8 @@ Everything optional has a working development default.
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | *(empty)* | **Test keys only.** Empty ⇒ mock gateway (no network call, no charge). |
 | `RAZORPAY_WEBHOOK_SECRET` | *(empty)* | HMAC secret for webhook signature verification. |
 | `APPLICATION_FEE_PAISE` | `75000` | ₹750.00. |
+| `UPI_PAYEE_NAME` | *(empty)* | Set it to show the **Pay by UPI** QR on the Payment page (payee name shown under the QR). |
+| `UPI_QR_URL` | `/payments/upi-qr.png` | QR image served from `client/public/payments/`. |
 | `ADMISSION_CYCLE` | `2026-27` | Scopes courses, applications and merit lists. |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | `admin@college.test` / `Admin@12345` | Seeded administrator. |
 | `SEED_OFFICER_EMAIL` / `SEED_OFFICER_PASSWORD` | `officer@college.test` / `Officer@12345` | Seeded officer. |
@@ -244,6 +252,8 @@ All routes are prefixed `/api/v1` and answer `{ success, data, message }`; error
 | POST | `/auth/verify-otp`, `/auth/resend-otp` | public |
 | POST | `/auth/login`, `/auth/refresh`, `/auth/logout` | public |
 | GET | `/auth/me` | authenticated |
+| POST | `/auth/change-password` | authenticated |
+| POST | `/auth/forgot-password`, `/auth/reset-password` | public (e-mailed 6-digit code) |
 | GET | `/courses`, `/courses/:id` | public |
 | POST/PATCH/DELETE | `/courses`, `/courses/:id`, `/courses/:id/cutoff` | admin |
 | POST | `/applications` (creates a draft) | applicant |
@@ -258,6 +268,8 @@ All routes are prefixed `/api/v1` and answer `{ success, data, message }`; error
 | DELETE | `/documents/:id` (while PENDING) | owner |
 | PATCH | `/documents/:id/verify` | officer, admin |
 | GET/POST | `/payments/mine`, `/payments/order`, `/payments/confirm` | applicant |
+| POST | `/payments/upi` `{ upiReference }` — UPI QR paid, awaiting verification | applicant |
+| PATCH | `/payments/:id/verify` `{ decision: PAID \| REJECTED, reason }` | officer, admin |
 | POST | `/payments/webhook` | Razorpay (HMAC-verified) |
 | GET/POST | `/merit`, `/merit/generate`, `/merit/preview/:id`, `/merit/publish/:id` | admin |
 | GET | `/merit/published` | public |
@@ -265,7 +277,8 @@ All routes are prefixed `/api/v1` and answer `{ success, data, message }`; error
 | GET | `/admin/stats`, `/admin/officers` | officer, admin |
 | POST/PATCH | `/admin/officers`, `/admin/officers/:id` | admin |
 
-Every list endpoint paginates: `limit` defaults to 20 and is hard-capped at 100.
+Every list endpoint paginates: `limit` defaults to 20 and is hard-capped at 100. List responses carry a
+`pagination` block `{ total, page, limit, pages }` next to the items.
 
 ---
 
@@ -300,14 +313,22 @@ Publishing writes `meritScore`/`meritRank` back to each application, moves allot
   requests / min) are on by default.
 - Uploads: memory storage → 5 MB limit → `pdf|jpeg|png` allow-list → storage driver.
 - Razorpay webhooks are verified with a timing-safe HMAC over the **raw** request body.
+- **UPI QR payments** can't be confirmed automatically: the applicant scans the college QR, pays, and enters
+  the 12-digit UPI reference. The fee shows *awaiting verification* (enough to submit) until an officer
+  marks it paid or rejects it on the review screen. An application can't reach **Verified** until its fee
+  is confirmed, and a UPI reference can be used by only one application.
 - Passwords are bcrypt hashes (12 rounds) and `passwordHash` is `select: false` everywhere.
+- Every user can change their password from **Account**; changing or resetting it signs out all other
+  sessions. Officers created by an admin get a temporary password and cannot call any other API until
+  they choose their own. "Forgot password" e-mails a 6-digit code and never reveals whether an
+  account exists.
 
 ---
 
 ## 8. Tests
 
 ```bash
-npm test            # 35 tests: merit maths, auth/roles, status transitions
+npm test            # 55 tests: merit maths, auth/roles, passwords, UPI payments, status transitions, pagination
 ```
 
 The suite boots its own in-process MongoDB, so it never touches your development data.
@@ -317,6 +338,9 @@ The suite boots its own in-process MongoDB, so it never touches your development
 | `tests/merit.test.js` | subject averaging, score weighting, cut-off exclusion, tie-breaks, seat allotment |
 | `tests/auth.test.js` | registration, OTP, password hashing, login guards, refresh rotation, 401/403 behaviour |
 | `tests/status.test.js` | transition map, illegal transitions, remark requirements, document gate, submit completeness |
+| `tests/password.test.js` | change password, forced change for temporary passwords, forgot/reset, session revocation |
+| `tests/pagination.test.js` | default page size, next page, the 100-item cap |
+| `tests/upi.test.js` | UPI reference submission, duplicate references, officer confirm/reject, the Verified fee gate |
 
 ---
 
@@ -351,7 +375,9 @@ The suite boots its own in-process MongoDB, so it never touches your development
 | `npm run install:all` | installs both workspaces |
 | `npm run db` | local mongod on :27017 (data in `server/.mongo-data`) |
 | `npm run dev` | db + API + client together |
-| `npm run seed` | staff, courses, ~40 applications (`-- --fresh` wipes applications first) |
+| `npm run seed` | staff, courses, ~40 applications, demo student (`-- --fresh` wipes applications first) |
+| `npm run demo:reset` | resets only the demo student to "ready to pay" |
 | `npm test` | server test suite |
 | `npm run lint` | ESLint over both workspaces |
 | `npm run build --prefix client` | production client bundle |
+>>>>>>> 595d559 (summa)

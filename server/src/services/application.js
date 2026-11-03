@@ -43,7 +43,7 @@ export const checkCompleteness = (application, { documents = [], payment = null 
     if (!uploadedTypes.has(type)) missing.push({ step: 'documents', field: type });
   });
 
-  if (!payment || payment.status !== 'PAID') {
+  if (!payment || !['PAID', 'PENDING_VERIFICATION'].includes(payment.status)) {
     missing.push({ step: 'payment', field: 'Application fee' });
   }
 
