@@ -13,6 +13,9 @@ const hasDb = Boolean(process.env.MONGO_URI || process.env.MONGODB_URI);
 
 if (process.env.SEED_ON_BUILD !== 'true') {
   process.stdout.write('[seed] SEED_ON_BUILD is not "true" — skipping database seed\n');
+} else if (!process.env.SEED_ADMIN_PASSWORD || !process.env.SEED_OFFICER_PASSWORD) {
+  // The defaults are printed in the public README — never seed a hosted site with them.
+  process.stdout.write('[seed] Set SEED_ADMIN_PASSWORD and SEED_OFFICER_PASSWORD first — skipping database seed\n');
 } else if (!hasDb) {
   process.stdout.write('[seed] No MONGO_URI / MONGODB_URI configured — skipping database seed\n');
 } else {

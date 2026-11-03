@@ -81,4 +81,10 @@ export const env = {
   },
 };
 
+// Fail closed: a production build must never sign tokens with the public dev secrets.
+const DEV_SECRETS = ['dev-access-secret', 'dev-refresh-secret', 'change-me-access-secret', 'change-me-refresh-secret'];
+if (env.isProd && (DEV_SECRETS.includes(env.jwt.accessSecret) || DEV_SECRETS.includes(env.jwt.refreshSecret))) {
+  throw new Error('JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be set to private values in production');
+}
+
 export default env;
