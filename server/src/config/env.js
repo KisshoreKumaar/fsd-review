@@ -32,8 +32,8 @@ export const env = {
     ...(process.env.CLIENT_ORIGIN || 'http://localhost:5173').split(',').map((o) => o.trim()),
     ...vercelOrigins,
   ].filter(Boolean),
-  // MONGODB_URI is the name Vercel's MongoDB Atlas integration uses.
-  mongoUri: process.env.MONGO_URI || process.env.MONGODB_URI || '',
+  // Vercel's MongoDB Atlas integration names it <PREFIX>_URL (e.g. MONGODB_URL).
+  mongoUri: process.env.MONGO_URI || process.env.MONGODB_URI || process.env.MONGODB_URL || process.env.STORAGE_URL || '',
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET || 'dev-access-secret',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',
